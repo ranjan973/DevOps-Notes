@@ -1,14 +1,13 @@
 ### Cofiguration Management with Ansible.
 
-## Problem Statement:
-
+## Problem Statement: 
 In early days, sysadmin used to manage the infrastructure/server configs, patching, software installations, upgrades manually or with shell scripting. THis was fine if the number of servers were less but became a combursome task with the adoption of cloud and micro-service architecture where the number of servers grew 10X.
 
 The manual config management became slow, non-repeatable and error prone. The scripts were hard to maintain. Congif management tools like Ansible, Cheff, Puppet solved this issue by automating infrastructure management by defining system configurations as code.
 
 ## Why Ansible amongst other config Management Tools?
 
-1. Puppet is a pull mechanism model whereas Ansible works on pull mechanism.
+- Puppet is a pull mechanism model whereas Ansible works on pull mechanism.
 	  In Push mechanism, the control server sends (pushes) configuration to target machines or managed nodes using Anisble playbook. In pull mechanism, the client (agents) regularly checks (pulls) configuration from the server.
 	
 - Ansible is agentless whereas other tools like Puppet is agent based and needs agents to be installed on control nodes and clients. 
@@ -44,7 +43,7 @@ To set up passwordless SSH key authentication, we need to generate the public/pr
 EX:1 `ansible -i inventory_file 172.31.22.25 -m "shell" -a "touch devops"`
  -m = ansible Module & -a = Argument. This command creates a file name "devops" on teh target server. The server IP or name must be listed in teh inventory file.
  
- EX:2 - ``ansible -i inventory 172.31.22.25 -m copy -a "src=/etc/hosts dest=/tmp/hosts"
+ EX:2 - `ansible -i inventory 172.31.22.25 -m copy -a "src=/etc/hosts dest=/tmp/hosts"`
  
  We can group servers in Ansible inventory file using syntax [Server_Type]. Ex below
  
