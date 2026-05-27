@@ -1,9 +1,12 @@
-## Concepts of containers ( Under the hood)
+# Container concepts
+
+### Concepts of containers ( Under the hood)
 
 Containers are NOT lightweight virtual machines.
 They are simply processes running on the host OS, but with special isolation and resource control mechanisms (like namespaces and cgroups) that make them behave like independent systems. They have a PID and Parent PID (PPID) just like other processes.
 
-### Namespace: Namespaces are a Linux Kernel feature that makes it possible to limit what a process can perceive in/of the system. Essentially, namespaces create a controlled and isolated env for the processes giving them the illusion of isolated system resources. Think of it like invisible fences of your programs which keep your processes from seeing and messing with each other.
+### Namespace: 
+Namespaces are a Linux Kernel feature that makes it possible to limit what a process can perceive in/of the system. Essentially, namespaces create a controlled and isolated env for the processes giving them the illusion of isolated system resources. Think of it like invisible fences of your programs which keep your processes from seeing and messing with each other.
 
 One of the overall goals of namespaces is to support the implementation of containers, a tool for lightweight virtualization (as well as other purposes) that provides a group of processes with the illusion that they are the only processes on the system.
 
