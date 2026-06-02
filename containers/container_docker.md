@@ -69,3 +69,91 @@ One of the key players is containerd. Containerd utilizes the unshare() system c
 `docker stop`        # Stop container
 
 `docker rm`          # Remove container
+
+### What is DJango?
+
+Django is a high-level Python web framework used to build web applications quickly, securely, and in a structured way. It provides a ready-made skeleton (framework) for building web applications, so developers don’t have to start from scratch.
+
+Django follows the MVT (Model-View-Template) architecture.
+It includes many built-in features like authentication, admin panel, ORM, and security protections.
+Django versions must be compatible with the installed Python version.
+
+### Basic setup flow
+
+Install Python -> Install PIP -> Install DJango using pip install django
+
+When you create a django project using command django-admin startproject project_name, it aauto creates pre-defined folder structure (skeleton) which includes project configuration file, setting,URL routing and application entry point.
+
+Django provides a lightweight built-in development server: python manage.py runserver
+
+### Docker persistent storage using volume and bind mounts
+
+THis is a method of storing the data outside the containers using volume ,bind mounts and tmpfs mounts
+
+- **Volume mounts**: Volumes are managed by docker deamon and docker CLI and they retain data even if the container using them is removed. The volume needs to be mounted on the container to access it. Directly accessing teh volume data is not supported. When we create a volume, it's stored within a directory on teh docker host.
+Docker volumes can use external storage filesystem like NFS or SMB
+
+- **Bind Mount**: When you use a bind mount, a file or directory on the host machine is mounted from the host into a container. By contrast, when you use a volume, a new directory is created within Docker's storage directory on the host machine.
+
+Bind mounts are appropriate for the following types of use case:
+
+- Sharing source code or build artifacts between a development environment on the Docker host and a container.
+
+- When you want to create or generate files in a container and persist the files onto the host's filesystem.
+
+- Sharing configuration files from the host machine to containers. This is how Docker provides DNS resolution to containers by default, by mounting /etc/resolv.conf from the host machine into each container.
+
+`docker volume create` , `docker volume ls` , `docker volume prune`
+
+`docker run --mount type=volume, src=myvol, dest=/data, ro`
+
+`docker run -v myvol:/data:ro `
+
+Both the above commands will do the same thing but --mount is preferred because it has more options than --volume or -v
+
+### Docker Networking Concepts
+
+Docker network allow the containers to talk to each other and the host systems AND the also the isolation between containers if needed. When containers are created, they are assigned an eth0 interface and put in the bridge network by default . Since teh host and the container are in 2 different subnet , there has to be a bridge network so that they can talk which is virtual network named docker0
+If the host system has internet access, the containers can also access the internet. 
+
+There are different types of network Drivers :-
+
+ - **Bridge** - Default network. We can create custom bridged network and join this network to a conatiner to create isolation between teh 2 containers.Docker creates this custom network in a seperate subnet. The container in customer network can still talk to the host but teh common veth docker0 is broken so the containers are isolated.
+ 
+ `docker network create custom-network` --> This created a custo bridged network with a different subnet than the defualt brdiged network
+ 
+` docker run -d --name login --network=custom-network nginx:latest`
+ 
+ - **Host** - The container in teh host network doesn't get an IP assigned and can be directly accessed using the host IP but this is not secure.
+ 
+ `docker run -d --name host_demo --network=host nginx:latest`
+ 
+ - **Overlay** - This network is primarily used during container orchestration when we have multiple cluster hosts and we want networking between containers running on those different hosts
+ 
+ **-none** - Completely isolate the container from the host and other containers
+
+### Limitations of Docker
+
+1) Docker is a single deamon process which is dockerd and is a single point of failure. If the deamon goes down, entire applications goes down since all the containers are managed by dockerd. Podman Solves this.
+
+2) Docker deamon runs as a root user which can be a security threat. Podman solves this
+
+3) Resource constraints if you are running too many containers on a single host.
+
+### How to secure containers?
+
+1) Use distroless images (scratch) which is a very light weight image with just the runtime and minimal system libraries. Use multi-stage builds.
+
+2) Create custom bridge networks for container isolation.
+
+3) Use tools like Sync to scan the container images.
+
+`docker exec -it container_name /bin/bash` --- To go inside the container.
+
+`docker images` -- TO list all teh images.
+
+`docker ps -a` -- To list all the stopped and running containers.
+
+`docker images rmi $(docker image ls -q)` -- To remove all the images from teh system.
+
+`docker system prune` -- To clean unused images and containers
