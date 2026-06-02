@@ -130,7 +130,7 @@ There are different types of network Drivers :-
  
  - **Overlay** - This network is primarily used during container orchestration when we have multiple cluster hosts and we want networking between containers running on those different hosts
  
- **-none** - Completely isolate the container from the host and other containers
+ - **none** - Completely isolate the container from the host and other containers
 
 ### Limitations of Docker
 
