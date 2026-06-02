@@ -45,3 +45,18 @@ Docker client -> Docker daemon (dockerd) -> Container daemon (containerd) -> run
 So when you use Docker, you tell Docker what to do, Docker’s manager (dockerd) asks its worker (containerd) to do the job, and the worker uses special features and rules (namespaces, cgroups, and runc) to make sure the job gets done within an/the isolated environment (container).
 
 One of the key players is containerd. Containerd utilizes the unshare() system call with flags such as CLONE_NEWNS, CLONE_NEWUTS, CLONE_NEWIPC, CLONE_NEWNET, and CLONE_NEWPID — see man page — to mock the system for the container runtime. This system call is at the core of the container's technology, enabling the creation of these pseudo-isolated environments where containers operate. Think of it as the magic spell that creates these special, separate spaces where containers can do their work without being able to interfere with processes running outside of it.
+
+### Doker container workflow
+
+1 - Write application code (python, nodeJs, Java etc)
+2- Write Dockerfile to create docker image using dokcerfile instructions. THis is the blueprint of the container and defines base OS, runtime, app dependencies , app code and startup scripts (CMD or ENTRYPOINT)
+3 - Build Image using docker build
+4 - Run container using the image - docker run
+5 - Store image in DockerHub - docker push
+6 - Manage and monitor container using commands below.
+
+`docker ps`          # Running containers
+`docker logs`        # Logs
+`docker exec -it`    # Access shell inside container
+`docker stop`        # Stop container
+`docker rm`          # Remove container
