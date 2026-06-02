@@ -49,14 +49,23 @@ One of the key players is containerd. Containerd utilizes the unshare() system c
 ### Doker container workflow
 
 1 - Write application code (python, nodeJs, Java etc)
+
 2- Write Dockerfile to create docker image using dokcerfile instructions. THis is the blueprint of the container and defines base OS, runtime, app dependencies , app code and startup scripts (CMD or ENTRYPOINT)
+
 3 - Build Image using docker build
+
 4 - Run container using the image - docker run
+
 5 - Store image in DockerHub - docker push
+
 6 - Manage and monitor container using commands below.
 
 `docker ps`          # Running containers
+
 `docker logs`        # Logs
+
 `docker exec -it`    # Access shell inside container
+
 `docker stop`        # Stop container
+
 `docker rm`          # Remove container
