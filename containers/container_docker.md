@@ -136,7 +136,9 @@ There are different types of network Drivers :-
 
 1) Docker is a single deamon process which is dockerd and is a single point of failure. If the deamon goes down, entire applications goes down since all the containers are managed by dockerd. Podman Solves this.
 
-2) Docker deamon runs as a root user which can be a security threat. Podman solves this
+2) Docker deamon runs as a root user which can be a security threat because it creates a direct pathway to complete host exploitation if compromised. By default, the Docker daemon (dockerd) requires root privileges to manipulate Linux kernel namespaces, control groups (cgroups), routing tables, and storage devices. Tu run docker commands, a normal user must be added to the "docker" group which is created during docker installation. The Docker installation process creates a dedicated docker group purely as a usability trade-off to eliminate the need for users to type sudo before every single Docker command. While convenient, adding a user to the docker group is the security equivalent of granting them passwordless root access via sudo. Any account belonging to the docker group can execute a command to spin up a container, map the host's entire root filesystem into it, and completely take over the machine
+
+The command-line interface (docker) communicates with the background daemon through a Unix domain socket located at /var/run/docker.sock. By default, this socket file is strictly owned by the root user. To let standard users use Docker without typing sudo, the installation sets the group ownership of that socket to the docker group. Podman solves this. 
 
 3) Resource constraints if you are running too many containers on a single host.
 
