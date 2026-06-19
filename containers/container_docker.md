@@ -1,161 +1,411 @@
-# Container concepts
+# Container Concepts
 
-### Concepts of containers ( Under the hood)
+## Concepts of Containers (Under the Hood)
 
-Containers are NOT lightweight virtual machines.
-They are simply processes running on the host OS, but with special isolation and resource control mechanisms (like namespaces and cgroups) that make them behave like independent systems. They have a PID and Parent PID (PPID) just like other processes.
+Containers are **NOT lightweight virtual machines**.
 
-### Namespace: 
-Namespaces are a Linux Kernel feature that makes it possible to limit what a process can perceive in/of the system. Essentially, namespaces create a controlled and isolated env for the processes giving them the illusion of isolated system resources. Think of it like invisible fences of your programs which keep your processes from seeing and messing with each other.
+They are simply processes running on the host operating system, but with special isolation and resource control mechanisms (such as Linux namespaces and cgroups) that make them behave like independent systems.
 
-One of the overall goals of namespaces is to support the implementation of containers, a tool for lightweight virtualization (as well as other purposes) that provides a group of processes with the illusion that they are the only processes on the system.
+Like any other process, containers have:
 
-Container engine uses several namepspaces including PID namespace , NET,IPC,MNT,UTC (isolation of host and domain names).
-By default, all processes use a common namespace and group, which grants them broad access to the system. But when we create a container, Docker mocks a system view (creating a new context) and give the container its own principal user, network configuration, mount folders, filesystem, and so on. As a result, the container has its own pseudo-isolated environment with a mix of shared and unshared resources; which gives the impression that it’s a separate OS, but it’s using the same kernel.
+- PID (Process ID)
+- PPID (Parent Process ID)
 
+---
 
-### Cgroup (control group)
-CGroups are another essential feauture of containers. They are again a Linux kernel feature that limits, accounts for and isolates resource usage (CPU, memory, disk I/O etc) for a group pf processes. You can think of them as traffic cops for your programs that make sure no one takes or uses too much resources. Cgroups enable sharing the available hardware resources with containers and enforce usage limits.
+# Linux Namespaces
 
-Container engines use the following cgroups:
+Namespaces are a Linux kernel feature that limits what a process can see or access on a system.
 
-Memory — Managing memory allocation and usage.
-HugeTBL — Accounting usage of huge pages by a process group.
-CPU — Managing CPU time and usage.
-CPUSet — Binding a group of processes to specific CPUs.
-BlkIO — Measuring and limiting the amount of I/O operations by group.
-net_cls and net_prio — Classifying and assigning network priorities to the traffic for traffic control.
-Devices — Managing read/write access devices.
-Freezer — Freezing a group. Useful for checkpointing (saving the state of a process) and migration.
+They create a controlled and isolated environment for processes, giving them the illusion that they have their own dedicated system resources.
 
-** Utilizing the Linux kernel features of Namespace and CG , containers run well within their boundaries ( scope and resource wise) unable to see and access what lies beyond their view.
+Think of namespaces as invisible fences that prevent processes from seeing or interfering with each other.
 
-### How does docker help??
+One of the primary goals of namespaces is to support containers, providing lightweight virtualization where a group of processes behaves as if it is running on its own machine.
 
-Docker is just an orcehestration layer or a user friendly interface for creating and working with containers. Below is sequence of events that happen when we run docker command
+---
 
-Docker client -> Docker daemon (dockerd) -> Container daemon (containerd) -> runc
+## Common Namespaces Used by Containers
 
-** Docker's best friends:
-- Docker client - User-facing CLI
-- Docker Deamon (dockerd) - Daemon responsible for managing containers and handling client requests — it is in charge of making sure containers do what you asked for.
-- containerd - Industry-standard container runtime that helps manage containers — think of this like a special worker that actually does the work of generating and guaranteeing that the programs run inside containers.
-- runc - Command-line tool for spawning and running containers — this is like a tool that starts and runs the programs inside containers.
+### PID Namespace
 
-So when you use Docker, you tell Docker what to do, Docker’s manager (dockerd) asks its worker (containerd) to do the job, and the worker uses special features and rules (namespaces, cgroups, and runc) to make sure the job gets done within an/the isolated environment (container).
+Provides process isolation.
 
-One of the key players is containerd. Containerd utilizes the unshare() system call with flags such as CLONE_NEWNS, CLONE_NEWUTS, CLONE_NEWIPC, CLONE_NEWNET, and CLONE_NEWPID — see man page — to mock the system for the container runtime. This system call is at the core of the container's technology, enabling the creation of these pseudo-isolated environments where containers operate. Think of it as the magic spell that creates these special, separate spaces where containers can do their work without being able to interfere with processes running outside of it.
+A container sees only its own processes.
 
-### Doker container workflow
+---
 
-1 - Write application code (python, nodeJs, Java etc)
+### NET Namespace
 
-2- Write Dockerfile to create docker image using dokcerfile instructions. THis is the blueprint of the container and defines base OS, runtime, app dependencies , app code and startup scripts (CMD or ENTRYPOINT)
+Provides network isolation.
 
-3 - Build Image using docker build
+Each container gets:
 
-4 - Run container using the image - docker run
+- Its own network interfaces
+- Routing table
+- Firewall rules
+- IP addresses
 
-5 - Store image in DockerHub - docker push
+---
 
-6 - Manage and monitor container using commands below.
+### IPC Namespace
 
-`docker ps`          # Running containers
+Provides isolation for:
 
-`docker logs`        # Logs
+- Shared memory
+- Message queues
+- Semaphores
 
-`docker exec -it`    # Access shell inside container
+---
 
-`docker stop`        # Stop container
+### MNT Namespace
 
-`docker rm`          # Remove container
+Provides filesystem mount isolation.
 
-### What is DJango?
+A container sees its own filesystem structure.
 
-Django is a high-level Python web framework used to build web applications quickly, securely, and in a structured way. It provides a ready-made skeleton (framework) for building web applications, so developers don’t have to start from scratch.
+---
 
-Django follows the MVT (Model-View-Template) architecture.
-It includes many built-in features like authentication, admin panel, ORM, and security protections.
-Django versions must be compatible with the installed Python version.
+### UTS Namespace
 
-### Basic setup flow
+Provides hostname and domain name isolation.
 
-Install Python -> Install PIP -> Install DJango using pip install django
+Containers can have their own hostname independent of the host.
 
-When you create a django project using command django-admin startproject project_name, it aauto creates pre-defined folder structure (skeleton) which includes project configuration file, setting,URL routing and application entry point.
+---
 
-Django provides a lightweight built-in development server: python manage.py runserver
+## How Docker Uses Namespaces
 
-### Docker persistent storage using volume and bind mounts
+By default, all Linux processes share common namespaces.
 
-THis is a method of storing the data outside the containers using volume ,bind mounts and tmpfs mounts
+When a container is created, Docker creates new namespace contexts and provides the container with:
 
-- **Volume mounts**: Volumes are managed by docker deamon and docker CLI and they retain data even if the container using them is removed. The volume needs to be mounted on the container to access it. Directly accessing teh volume data is not supported. When we create a volume, it's stored within a directory on teh docker host.
-Docker volumes can use external storage filesystem like NFS or SMB
+- Its own process view
+- Network stack
+- Hostname
+- Filesystem mounts
+- IPC resources
 
-- **Bind Mount**: When you use a bind mount, a file or directory on the host machine is mounted from the host into a container. By contrast, when you use a volume, a new directory is created within Docker's storage directory on the host machine.
+This creates a pseudo-isolated environment that appears to be a separate operating system, even though the container is still sharing the host kernel.
 
-Bind mounts are appropriate for the following types of use case:
+---
 
-- Sharing source code or build artifacts between a development environment on the Docker host and a container.
+# Control Groups (cgroups)
 
-- When you want to create or generate files in a container and persist the files onto the host's filesystem.
+cgroups are another Linux kernel feature that:
 
-- Sharing configuration files from the host machine to containers. This is how Docker provides DNS resolution to containers by default, by mounting /etc/resolv.conf from the host machine into each container.
+- Limit resource consumption
+- Track resource usage
+- Isolate resource allocation
 
-`docker volume create` , `docker volume ls` , `docker volume prune`
+Think of cgroups as traffic cops that ensure no process consumes excessive resources.
 
-`docker run --mount type=volume, src=myvol, dest=/data, ro`
+They allow multiple containers to share the same host while enforcing limits.
 
-`docker run -v myvol:/data:ro `
+---
 
-Both the above commands will do the same thing but --mount is preferred because it has more options than --volume or -v
+## Resources Managed by cgroups
 
-### Docker Networking Concepts
+### Memory
 
-Docker network allow the containers to talk to each other and the host systems AND the also the isolation between containers if needed. When containers are created, they are assigned an eth0 interface and put in the bridge network by default . Since teh host and the container are in 2 different subnet , there has to be a bridge network so that they can talk which is virtual network named docker0
-If the host system has internet access, the containers can also access the internet. 
+Controls memory allocation and usage.
 
-There are different types of network Drivers :-
+---
 
- - **Bridge** - Default network. We can create custom bridged network and join this network to a conatiner to create isolation between teh 2 containers.Docker creates this custom network in a seperate subnet. The container in customer network can still talk to the host but teh common veth docker0 is broken so the containers are isolated.
- 
- `docker network create custom-network` --> This created a custo bridged network with a different subnet than the defualt brdiged network
- 
-` docker run -d --name login --network=custom-network nginx:latest`
- 
- - **Host** - The container in teh host network doesn't get an IP assigned and can be directly accessed using the host IP but this is not secure.
- 
- `docker run -d --name host_demo --network=host nginx:latest`
- 
- - **Overlay** - This network is primarily used during container orchestration when we have multiple cluster hosts and we want networking between containers running on those different hosts
- 
- - **none** - Completely isolate the container from the host and other containers
+### HugeTLB
 
-### Limitations of Docker
+Tracks huge page allocation and usage.
 
-1) Docker is a single deamon process which is dockerd and is a single point of failure. If the deamon goes down, entire applications goes down since all the containers are managed by dockerd. Podman Solves this.
+---
 
-2) Docker deamon runs as a root user which can be a security threat because it creates a direct pathway to complete host exploitation if compromised. By default, the Docker daemon (dockerd) requires root privileges to manipulate Linux kernel namespaces, control groups (cgroups), routing tables, and storage devices. Tu run docker commands, a normal user must be added to the "docker" group which is created during docker installation. The Docker installation process creates a dedicated docker group purely as a usability trade-off to eliminate the need for users to type sudo before every single Docker command. While convenient, adding a user to the docker group is the security equivalent of granting them passwordless root access via sudo. Any account belonging to the docker group can execute a command to spin up a container, map the host's entire root filesystem into it, and completely take over the machine
+### CPU
 
-The command-line interface (docker) communicates with the background daemon through a Unix domain socket located at /var/run/docker.sock. By default, this socket file is strictly owned by the root user. To let standard users use Docker without typing sudo, the installation sets the group ownership of that socket to the docker group. Podman solves this. 
+Controls CPU scheduling and usage.
 
-3) Resource constraints if you are running too many containers on a single host.
+---
 
-### How to secure containers?
+### CPUSet
 
-1) Use distroless images (scratch) which is a very light weight image with just the runtime and minimal system libraries. Use multi-stage builds.
+Pins processes to specific CPU cores.
 
-2) Create custom bridge networks for container isolation.
+---
 
-3) Use tools like Sync to scan the container images.
+### BlkIO
 
-`docker exec -it container_name /bin/bash` --- To go inside the container.
+Controls and limits disk I/O operations.
 
-`docker images` -- TO list all teh images.
+---
 
-`docker ps -a` -- To list all the stopped and running containers.
+### net_cls and net_prio
 
-`docker images rmi $(docker image ls -q)` -- To remove all the images from teh system.
+Provides:
 
-`docker system prune` -- To clean unused images and containers
+- Traffic classification
+- Network prioritization
+
+---
+
+### Devices
+
+Controls access to devices.
+
+Examples:
+
+- USB
+- Storage devices
+- GPU devices
+
+---
+
+### Freezer
+
+Pauses process groups.
+
+Useful for:
+
+- Checkpointing
+- Process migration
+
+---
+
+## Namespace + cgroups
+
+Containers rely on:
+
+```text
+Namespaces → Isolation
+cgroups    → Resource Control
+```
+
+Together they create safe boundaries for containers.
+
+---
+
+# How Does Docker Help?
+
+Docker is a user-friendly platform that simplifies container creation and management.
+
+Instead of manually dealing with namespaces and cgroups, Docker automates the entire process.
+
+---
+
+## Docker Execution Flow
+
+```text
+Docker Client
+      ↓
+Docker Daemon (dockerd)
+      ↓
+containerd
+      ↓
+runc
+      ↓
+Container
+```
+
+---
+
+# Docker Components
+
+## Docker Client
+
+The command-line interface used by users.
+
+Examples:
+
+```bash
+docker run
+docker ps
+docker images
+```
+
+---
+
+## Docker Daemon (dockerd)
+
+Background process responsible for:
+
+- Managing containers
+- Managing images
+- Managing networks
+- Handling client requests
+
+It acts as the central manager.
+
+---
+
+## containerd
+
+Industry-standard container runtime.
+
+Responsibilities:
+
+- Container lifecycle management
+- Image management
+- Execution coordination
+
+Think of containerd as the worker that performs the actual container operations.
+
+---
+
+## runc
+
+Low-level container runtime.
+
+Responsibilities:
+
+- Create containers
+- Start containers
+- Execute container processes
+
+---
+
+# How Containers Are Created
+
+When you run:
+
+```bash
+docker run nginx
+```
+
+The sequence is:
+
+```text
+User
+ ↓
+Docker Client
+ ↓
+dockerd
+ ↓
+containerd
+ ↓
+runc
+ ↓
+Linux Namespaces + cgroups
+ ↓
+Container Process
+```
+
+---
+
+## The Magic Behind Isolation
+
+Container runtimes use the Linux `unshare()` system call.
+
+Typical namespace flags include:
+
+```text
+CLONE_NEWNS
+CLONE_NEWUTS
+CLONE_NEWIPC
+CLONE_NEWNET
+CLONE_NEWPID
+```
+
+This creates isolated environments where container processes behave as if they are running on their own machine.
+
+---
+
+# Docker Container Workflow
+
+## Step 1: Write Application Code
+
+Examples:
+
+- Python
+- Java
+- NodeJS
+- Go
+- PHP
+
+---
+
+## Step 2: Write Dockerfile
+
+A Dockerfile acts as the blueprint for the container.
+
+It defines:
+
+- Base image
+- Runtime
+- Dependencies
+- Application code
+- Startup command
+
+Example:
+
+```dockerfile
+FROM python:3.12
+
+COPY . /app
+
+WORKDIR /app
+
+RUN pip install -r requirements.txt
+
+CMD ["python","app.py"]
+```
+
+---
+
+## Step 3: Build Docker Image
+
+```bash
+docker build -t myapp .
+```
+
+---
+
+## Step 4: Run Container
+
+```bash
+docker run myapp
+```
+
+---
+
+## Step 5: Push Image to Registry
+
+```bash
+docker push myrepo/myapp
+```
+
+Common registries:
+
+- Docker Hub
+- AWS ECR
+- Azure ACR
+- GitHub Container Registry
+
+---
+
+## Step 6: Monitor and Manage
+
+### Running Containers
+
+```bash
+docker ps
+```
+
+---
+
+### View Logs
+
+```bash
+docker logs <container>
+```
+
+---
+
+### Open Shell
+
+```bash
+docker exec -it <container> /bin/bash
+```
+
+---
+
+### Stop Container
+
+```bash
+docker stop <container>
