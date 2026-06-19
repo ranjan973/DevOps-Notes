@@ -428,6 +428,461 @@ Similar to a Pipeline Project but automatically discovers and builds multiple br
 
 ---
 
+# What is a Jenkinsfile?
+
+A **Jenkinsfile** is a text file that defines a Jenkins Pipeline using code.
+
+It enables:
+
+- Pipeline as Code
+- Version control of CI/CD processes
+- Repeatable and consistent builds
+- Easier collaboration among team members
+
+Instead of configuring jobs manually in the Jenkins UI, pipelines are stored in a repository alongside application source code. 【1-400332】
+
+---
+
+# Why Jenkinsfile?
+
+## Traditional Approach
+- Jenkins jobs configured manually through UI
+- Difficult to track changes
+- Hard to migrate between Jenkins instances
+- No version history
+
+## Jenkinsfile Approach
+- Pipeline stored in Git
+- Easy to review and track changes
+- Infrastructure and CI/CD process managed as code
+- Same pipeline can be reused across environments
+
+---
+
+# Jenkins Pipeline Structure
+
+A Jenkins Pipeline is composed of:
+
+```
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                // commands
+            }
+        }
+
+        stage('Test') {
+            steps {
+                // commands
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                // commands
+            }
+        }
+    }
+}
+```
+
+---
+
+# Main Jenkinsfile Components
+
+## 1. Pipeline
+
+Top-level block.
+
+```
+pipeline {
+}
+```
+
+This defines the entire CI/CD workflow.
+
+---
+
+## 2. Agent
+
+Specifies where the pipeline runs.
+
+```
+agent any
+```
+
+Meaning:
+- Jenkins can execute on any available agent/node.
+
+Examples:
+
+```
+agent any
+```
+
+```
+agent {
+    label 'linux'
+}
+```
+
+---
+
+## 3. Stages
+
+Stages represent major phases of the pipeline.
+
+Examples:
+
+- Build
+- Test
+- Package
+- Deploy
+
+```
+stages {
+}
+```
+
+---
+
+## 4. Stage
+
+Defines an individual phase.
+
+```
+stage('Build')
+```
+
+Example:
+
+```
+stage('Build') {
+    steps {
+        echo 'Building application'
+    }
+}
+```
+
+---
+
+## 5. Steps
+
+Actual commands executed inside a stage.
+
+```
+steps {
+}
+```
+
+Examples:
+
+```
+echo 'Hello World'
+```
+
+```
+sh 'mvn package'
+```
+
+```
+sh 'npm install'
+```
+
+---
+
+# Example Jenkinsfile
+
+```
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Build') {
+            steps {
+                echo 'Building application...'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Running tests...'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying application...'
+            }
+        }
+    }
+}
+```
+
+Execution Flow:
+
+```text
+Build
+  ↓
+Test
+  ↓
+Deploy
+```
+
+---
+
+# Declarative vs Scripted Pipeline
+
+The video explains two Jenkinsfile styles. 【1-400332】
+
+## Declarative Pipeline
+
+Most commonly used.
+
+Example:
+
+```groovy
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Build'
+            }
+        }
+    }
+}
+```
+
+### Advantages
+- Easier to read
+- Structured syntax
+- Better for beginners
+- Less error-prone
+
+---
+
+## Scripted Pipeline
+
+Uses Groovy syntax and programming constructs.
+
+Example:
+
+```groovy
+node {
+    stage('Build') {
+        echo 'Build'
+    }
+}
+```
+
+### Advantages
+- More flexibility
+- Supports advanced logic
+- Useful for complex workflows
+
+### Disadvantages
+- Harder to read
+- Steeper learning curve
+
+---
+
+# Useful Jenkinsfile Commands
+
+## Echo
+
+Print message in Jenkins console.
+
+```groovy
+echo "Application Build Started"
+```
+
+---
+
+## Shell Command
+
+Execute Linux command.
+
+```groovy
+sh "ls -la"
+```
+
+```groovy
+sh "mvn package"
+```
+
+---
+
+# Replay Feature
+
+Jenkins provides a **Replay** feature. 【1-400332】
+
+Purpose:
+
+- Modify Jenkinsfile temporarily
+- Test changes quickly
+- No need to commit to Git for every small test
+
+Benefits:
+
+- Faster experimentation
+- Easier troubleshooting
+- Useful during pipeline development
+
+Note:
+- Changes made through Replay are not automatically saved to Git.
+
+---
+
+# Restart from Stage
+
+Jenkins allows restarting the pipeline from a specific stage. 【1-400332】
+
+Example:
+
+Pipeline stages:
+
+```text
+Build
+Test
+Deploy
+```
+
+If deployment fails:
+
+- No need to rerun Build and Test
+- Restart directly from Deploy stage
+
+Benefits:
+
+- Saves time
+- Reduces resource consumption
+- Faster troubleshooting
+
+---
+
+# Best Practices
+
+## Keep Jenkinsfile in Git
+
+Store alongside application code.
+
+```text
+project/
+ ├─ src/
+ ├─ pom.xml
+ └─ Jenkinsfile
+```
+
+---
+
+## Use Meaningful Stage Names
+
+Good:
+
+```groovy
+stage('Build')
+stage('Unit Tests')
+stage('Deploy to Dev')
+```
+
+Avoid:
+
+```groovy
+stage('Step1')
+stage('Step2')
+```
+
+---
+
+## Keep Stages Small
+
+Prefer:
+
+```text
+Build
+Test
+Package
+Deploy
+```
+
+Instead of one huge stage containing everything.
+
+---
+
+## Version Control Everything
+
+Track:
+- Source code
+- Build process
+- Deployment process
+- Pipeline changes
+
+---
+
+# Interview Questions
+
+### What is a Jenkinsfile?
+A text file that defines a Jenkins Pipeline using code and can be stored in version control.
+
+### What is Pipeline as Code?
+Managing CI/CD workflows through code instead of manual UI configuration.
+
+### What are the main sections of a Jenkinsfile?
+- pipeline
+- agent
+- stages
+- stage
+- steps
+
+### Difference between Declarative and Scripted Pipeline?
+
+| Declarative | Scripted |
+|------------|------------|
+| Structured syntax | Groovy-based |
+| Easier to learn | More flexible |
+| Recommended for most cases | Suitable for advanced use cases |
+
+### What is Replay in Jenkins?
+A feature to test Jenkinsfile modifications without changing Git repository files.
+
+### What is Restart from Stage?
+Ability to rerun a failed pipeline starting from a specific stage instead of running the entire pipeline again.
+
+---
+
+# Quick Revision Notes
+
+✅ Jenkinsfile = Pipeline as Code
+
+✅ Stored in Git repository
+
+✅ Main blocks:
+
+```text
+pipeline
+ ├── agent
+ └── stages
+      ├── stage
+      │     └── steps
+```
+
+✅ Declarative Pipeline → easier, recommended
+
+✅ Scripted Pipeline → flexible, advanced
+
+✅ Replay → test Jenkinsfile changes quickly
+
+✅ Restart from Stage → rerun only failed stages
+
+✅ Jenkinsfile should live with application code in the same repository
+
+
 # GitHub Actions
 
 ## What is GitHub Actions?
