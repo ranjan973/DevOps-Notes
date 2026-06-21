@@ -229,3 +229,10 @@ sudo useradd username
 ```bash
 sudo useradd -s /sbin/nologin siva
 ```
+```text
+/bin  = Programs
+/lib  = Code used by programs
+/etc  = Configuration
+/var  = Logs and variable data
+/home = User files
+```
