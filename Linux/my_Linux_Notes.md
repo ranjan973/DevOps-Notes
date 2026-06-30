@@ -843,3 +843,875 @@ do
     echo "$i = ${arr[$i]}"
 done
 ```
+# Getting Input
+
+## 1) Passing arguments at the time of invoking the script and accessing them using `$1`, `$2` etc.
+
+Example:
+
+```bash
+./myscript.sh abc 123
+
+echo $1
+echo $2
+echo $3
+```
+
+This will print:
+
+```text
+abc
+123
+space
+```
+
+### Notes
+
+```text
+$0 contains the script name.
+$1, $2, $3, ... contain positional arguments.
+$# returns the total number of arguments passed.
+$@ returns all arguments as separate words.
+$* returns all arguments as a single string.
+```
+
+## 2) Taking input using `read` command and storing it in a variable
+
+Example:
+
+```bash
+echo "What is your name?"
+read name
+echo "Hello $name"
+```
+
+---
+
+# ASCII
+
+ASCII = A standard mapping of characters to numbers.
+
+Problem solved:
+
+Different computers needed a common way to represent text.
+
+Example:
+
+```text
+A = 65
+a = 97
+0 = 48
+```
+
+ASCII uses 7 bits → 128 characters and is the foundation of modern text encoding systems like Unicode.
+
+---
+
+# Arithmetic and String Comparison Operators
+
+Bash uses different operators for numbers and strings.
+
+Integer comparisons commonly use:
+
+```text
+-eq
+-ne
+-gt
+-ge
+-lt
+-le
+```
+
+String comparisons use operators like:
+
+```text
+=
+!=
+<
+>
+-z
+-n
+```
+
+```text
+-z = String is empty/null
+-n = String is not empty
+```
+
+In Bash, `[[ condition ]]` is safer and more powerful than `[ condition ]`.
+
+In Bash, `(( ))` is preferred for arithmetic conditions because it looks more like normal programming syntax.
+
+Inside `(( ))`, you can use symbols like:
+
+```text
+>
+<
+==
+!=
+>=
+<=
+```
+
+Do not use `>` and `<` for numeric comparison inside `[ ]`.
+
+This is wrong for numeric comparison because `>` is treated as a string comparison or redirection operator, depending on the context.
+
+## Best Practice
+
+For Bash scripting, use `(( ))` for numbers:
+
+```bash
+if (( count > 10 )); then
+    echo "Count is greater than 10"
+fi
+```
+
+Use `[[ ]]` for strings:
+
+```bash
+if [[ "$env" == "prod" ]]; then
+    echo "Production environment"
+fi
+```
+
+Inside `(( ))`, Bash already treats variable names as arithmetic variables, so `$` is optional and usually avoided.
+
+Example:
+
+```bash
+(( a > b ))
+```
+
+is preferred over:
+
+```bash
+(( $a > $b ))
+```
+
+But inside `[[ ]]`, use `$var` to access the variable value for string comparison:
+
+```bash
+[[ "$name" == "Anand" ]]
+```
+
+---
+
+# Integer Checking Condition
+
+```bash
+if ! [[ "$num1" =~ ^-?[0-9]+$ && "$num2" =~ ^-?[0-9]+$ ]]; then
+```
+
+Meaning:
+
+If `num1` and `num2` are not both valid integers, then show error.
+
+```text
+=~      Matches regular expression
+^       Start of input
+-?      Optional minus sign
+[0-9]+  One or more digits
+$       End of input
+```
+
+---
+
+# What is Regular Expression?
+
+Regular Expressions (Regex) are one of the most powerful tools we use in Linux, Bash, grep, sed, awk, Python, and many DevOps tools.
+
+Think of regex as:
+
+> A language for describing text patterns.
+
+Instead of looking for an exact string, regex lets you search for patterns.
+
+## Quick Regex Cheat Sheet
+
+```text
+^       Start of line
+$       End of line
+.       Any character
+*       0 or more
++       1 or more
+?       0 or 1
+[]      Character class
+[^]     NOT
+{n}     Exactly n times
+{n,m}   Between n and m times
+|       OR
+()      Grouping
+```
+
+## Most Common DevOps Regex
+
+```text
+^[0-9]+$              # Positive integer
+^-?[0-9]+$            # Integer (can optionally contain negative values as well)
+^[a-zA-Z]+$           # Letters only
+^[a-zA-Z0-9]+$        # Alphanumeric
+^[a-zA-Z0-9._-]+$     # Username/file name
+^[0-9]{10}$           # 10-digit number
+```
+
+---
+
+# Case in Shell Scripting
+
+In shell scripting, `case` is a conditional control structure used to compare one value against multiple patterns.
+
+The same logic using `if-elif-else` would become very messy.
+
+Example:
+
+```bash
+case "$choice" in
+    start|Start)
+        echo "Starting service"
+        ;;
+    stop|Stop)
+        echo "Stopping service"
+        ;;
+    restart|Restart)
+        echo "Restarting service"
+        ;;
+    *)
+        echo "Invalid option"
+        ;;
+esac
+```
+
+## IMP Note: Case Is Pattern Matching, Not Just Exact Matching
+
+```text
+*       Matches anything
+?       Matches any single character
+[abc]   Matches one character: a, b, or c
+[0-9]   Matches one digit
+[a-z]   Matches lowercase letter range
+*.txt   Matches anything ending with .txt
+file?   Matches file1, fileA, etc.
+```
+
+Example:
+
+```bash
+#!/usr/bin/env bash
+
+echo "Enter a single digit:"
+read num
+
+case "$num" in
+    [0-9])
+        echo "You entered a single digit"
+        ;;
+    *)
+        echo "Not a single digit"
+        ;;
+esac
+```
+
+## Key Points
+
+```text
+case checks one value against multiple patterns.
+It is cleaner than long if-elif-else for menus/options.
+Patterns are checked from top to bottom.
+First matching branch runs.
+;; ends a branch.
+*) is the default branch.
+| is used for OR patterns.
+case uses shell glob patterns, not regex.
+Always quote the variable: case "$var" in
+Use esac to close the block.
+```
+
+---
+
+# Conversion Inputs to Upper or Lower Case in Bash
+
+Example:
+
+```bash
+name="aNaNd"
+
+echo "${name,,}"   # anand
+echo "${name^^}"   # ANAND
+echo "${name^}"    # ANaNd
+echo "${name,}"    # aNaNd
+```
+
+---
+
+# Integer Expansion & Command Substitution
+
+```bash
+today=$(date)
+```
+
+OR
+
+```bash
+today=`date`
+```
+
+OR
+
+```bash
+files=$(ls)
+```
+
+→ Command substitution
+
+```bash
+sum=$((5 + 3))
+```
+
+→ Arithmetic expansion
+
+Without arithmetic expansion:
+
+```bash
+echo "$a" + "$b"
+```
+
+Output:
+
+```text
+10 + 20
+```
+
+(just text)
+
+With arithmetic expansion:
+
+```bash
+a=10
+b=20
+
+echo $(( a + b ))
+```
+
+Output:
+
+```text
+30
+```
+
+We can also write:
+
+```bash
+echo $(($a + $b))
+```
+
+Note:
+
+Bash arithmetic expansion works with integers only.
+
+---
+
+# While and Until Loop
+
+```text
+while = Continue WHILE condition is true
+until = Continue UNTIL condition becomes true
+```
+
+A while loop runs as long as the condition is TRUE.
+
+Syntax:
+
+```bash
+while condition
+do
+    commands
+done
+```
+
+An until loop runs as long as the condition is FALSE.
+
+Syntax:
+
+```bash
+until condition
+do
+    commands
+done
+```
+
+## Use while when the condition naturally describes continuation
+
+Examples:
+
+```bash
+while (( count <= 10 ))
+while read line
+while [[ -n "$input" ]]
+```
+
+## Use until when the condition naturally describes the stopping point
+
+Examples:
+
+```bash
+until ping -c1 server >/dev/null
+until [[ -f file.txt ]]
+until (( retries == 5 ))
+```
+
+---
+
+# exit, break and continue in Shell Scripting
+
+```text
+break    -> Terminates the loop
+continue -> Skips the current iteration and moves to the next one
+exit     -> Exit script
+```
+
+---
+
+# Process Management
+
+```bash
+pstree -a
+```
+
+Shows the running processes in a tree format along with the arguments.
+
+A process is an OS/kernel entity identified by a PID.
+
+A job is a shell construct used to manage one or more processes.
+
+Jobs can run in the foreground, background, or be stopped.
+
+Background processes are typically managed as jobs by the shell, but not every process on the system is a shell job.
+
+```text
+&      -> Run a command in the background
+jobs   -> Lists active jobs and status in the current shell
+bg     -> Put a job in the background
+fg     -> Bring a background job to the foreground
+wait   -> Wait for background processes to finish
+```
+
+## Difference Between Job and Process
+
+```bash
+jobs      # show jobs
+bg %1     # continue job in background
+fg %1     # bring job to foreground
+kill %1   # kill a job
+```
+
+```text
+Ctrl + Z -> Stops a job
+```
+
+If you want to start it again:
+
+```bash
+bg <job_number>
+```
+
+A job is simply a shell-managed group of one or more processes.
+
+When you start commands from a shell (Bash), the shell assigns them job numbers.
+
+One job can have multiple processes.
+
+Shell assigns the job a Job ID such as:
+
+```text
+%1
+%2
+```
+
+A job exists only within the current shell session.
+
+A process is a running instance of a program managed by the operating system.
+
+It exists regardless of a shell.
+
+---
+
+# Text Processing Commands
+
+```text
+grep -> Searches for patterns in text files
+sed  -> Processes and transforms text streams
+awk  -> Processes and analyzes text files
+sort -> Sort lines of text files
+cut  -> Removes sections from each line of files
+tr   -> Translates or deletes characters
+```
+# grep - Global Regular Expression Print
+
+Searches text and prints lines that match a pattern.
+
+Examples:
+
+```bash
+grep error app.log
+```
+
+Prints all lines containing the word `error` in `app.log`.
+
+```bash
+grep error *.log
+```
+
+Searches all log files.
+
+```bash
+grep -n error app.log
+```
+
+Displays line numbers as well.
+
+```bash
+grep -c error app.log
+```
+
+Counts the number of lines which match `error`.
+
+**Note:** This is NOT the number of occurrences of the word.
+
+```bash
+grep -v error app.log
+```
+
+Show lines NOT containing `error`.
+
+```bash
+grep -w root file.txt
+```
+
+Matches only the exact word.
+
+```bash
+grep -l error *.log
+```
+
+Shows file names only.
+
+```bash
+grep -L error *.log
+```
+
+Lists files that do not contain `error`.
+
+```bash
+grep -A3 ERROR app.log
+```
+
+Show match + next 3 lines.
+
+```bash
+grep -B3 ERROR app.log
+```
+
+Shows 3 lines before the match.
+
+```bash
+grep -C3 ERROR app.log
+```
+
+Context around the match.
+
+Shows 3 lines before and 3 lines after.
+
+```bash
+grep -r error
+```
+
+Searches for `error` recursively including files under subdirectories.
+
+```bash
+grep -q error app.log
+```
+
+Suppresses the output and allows checking the status of the previous command using:
+
+```bash
+echo $?
+```
+
+```text
+0        = Success (Pattern found)
+Non-zero = Failure (Pattern not found)
+```
+
+This feature can help us write automation scripts to check whether a certain pattern or word exists in a file and take actions based on the command's exit status.
+
+---
+
+## Regular Expressions (Important)
+
+```bash
+grep '^root' /etc/passwd
+```
+
+Find lines starting with `root`.
+
+```bash
+grep 'bash$' /etc/passwd
+```
+
+Find lines ending with `bash`.
+
+Will print all lines that end with `bash`.
+
+```bash
+grep '^root$' file.txt
+```
+
+Exact line match.
+
+```bash
+grep 'a.c' file.txt
+```
+
+Find any character between `a` and `c`.
+
+Examples:
+
+```text
+abc
+axc
+a1c
+```
+
+---
+
+## Extended Regex -> grep -E or egrep
+
+```bash
+grep -E 'error|warning'
+```
+
+Matches either `error` or `warning`.
+
+### BRE vs ERE
+
+In Basic RegEx (BRE), characters like `+`, `?`, `|`, and `()` are treated as ordinary characters, not regex operators.
+
+To give them a special regex meaning, you must escape them with `\`.
+
+Example:
+
+You want:
+
+```text
+One or more digits
+```
+
+BRE:
+
+```text
+^[0-9]\+$
+```
+
+Here `\+` means:
+
+```text
+Treat + as the regex operator "one or more"
+```
+
+Without the backslash:
+
+```text
+^[0-9]+$
+```
+
+BRE interprets `+` as a literal plus sign, not a quantifier.
+
+Extended RegEx (ERE) says `+ ? | ()` are already special, so no backslash is needed.
+
+Much easier to read.
+
+### Remember
+
+```bash
+[[ string =~ regex ]]
+```
+
+→ ERE
+
+```bash
+grep pattern
+```
+
+→ BRE (default)
+
+```bash
+grep -E pattern
+```
+
+→ ERE
+
+```text
+grep  -> Basic Regular Expressions
+egrep -> Extended Regular Expressions
+```
+
+---
+
+# sed - Stream Editor
+
+```text
+grep -> Find lines
+sed  -> Modify lines
+awk  -> Process fields/columns
+```
+
+Examples:
+
+```bash
+sed 's/old/new/g' file
+```
+
+Replace all occurrences of `old` with `new`.
+
+```bash
+sed -i 's/old/new/g' file
+```
+
+Modify file in place.
+
+```bash
+sed -n '/pattern/p' file
+```
+
+Print only matching lines.
+
+```bash
+sed '/pattern/d' file
+```
+
+Delete matching lines.
+
+```bash
+sed '/^$/d' file
+```
+
+Delete blank lines.
+
+```bash
+sed 's/^/#/' file
+```
+
+Add `#` at the beginning of every line.
+
+```bash
+sed 's/^#//' file
+```
+
+Remove leading `#`.
+
+```bash
+sed -n '5p' file
+```
+
+Print only line 5.
+
+```bash
+sed -n '$p' file
+```
+
+Print the last line.
+
+```bash
+sed -E 's/[0-9]+/NUMBER/g'
+```
+
+Replace one or more digits with `NUMBER`.
+
+```bash
+sed '/start/,/end/d' file
+```
+
+Delete everything from `start` to `end`.
+
+---
+
+# awk
+
+## Basic Syntax
+
+```bash
+awk 'pattern { action }' file
+```
+
+Example:
+
+```bash
+awk -F: '$7 == "/bin/bash" {print $1}' /etc/passwd
+```
+
+---
+
+## How This Command Works
+
+- **`awk`** → Invokes the awk text-processing utility.
+- **`-F:`** → Sets the field separator (delimiter) to a colon (`:`), which is how fields are split in the `/etc/passwd` file.
+- **`$7 == "/bin/bash"`** → Checks if the 7th field (the login shell column) exactly matches `/bin/bash`.
+- **`{print $1}`** → Prints only the 100% matching 1st field (the username).
+- **`/etc/passwd`** → Specifies the file path to read from.
+
+---
+
+## Common Pattern Matching Examples
+
+### 1. Match Pattern Across an Entire Line
+
+```bash
+awk '/error/' logfile.txt
+```
+
+Matches records containing the word `error`.
+
+### 2. Match Pattern in a Specific Column
+
+```bash
+awk '$1 ~ /apple/' data.txt
+```
+
+Matches rows where column 1 contains `apple`.
+
+### 3. Negative Pattern Match
+
+```bash
+awk '$2 !~ /yellow/' data.txt
+```
+
+Matches rows where column 2 does NOT contain `yellow`.
+
+### 4. Match Exact Strings (Logical Comparisons)
+
+```bash
+awk '$1 == "admin"' users.txt
+```
+
+Matches rows where column 1 is exactly `admin`.
+
+### 5. Regex Match in Specific Column
+
+```bash
+awk -F: '$7 ~ /(nologin|false|sync)$/{print $0}' /etc/passwd
+```
+
+If column 7 ends with:
+
+```text
+nologin
+false
+sync
+```
+
+then print the entire record.
+
+```text
+$0 = Entire record (entire line)
+```
